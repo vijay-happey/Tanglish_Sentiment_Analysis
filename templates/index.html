@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tanglish Sentiment Analyzer</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🧠 Tanglish Sentiment Analyzer</h1>
+            <p>Analyze sentiment in Tamil+English mixed sentences (Tanglish)</p>
+        </header>
+
+        <div class="main-content">
+            <!-- Text Input Section -->
+            <div class="section">
+                <h2>📝 Text Input Mode</h2>
+                <form method="POST">
+                    <div class="form-group">
+                        <label for="text_input">Enter your Tanglish text:</label>
+                        <textarea 
+                            id="text_input" 
+                            name="text_input" 
+                            rows="4" 
+                            placeholder="Enter your Tanglish sentence here... e.g., 'Semma awesomeu da! Vera level magizhchi.'"
+                            required>{{ text_input }}</textarea>
+                    </div>
+                    <button type="submit" class="btn primary">Analyze Sentiment</button>
+                </form>
+
+                {% if text_result %}
+                <div class="result-box {{ text_result.split(' ')[0].lower() }}">
+                    <h3>
+                        <i class="fas fa-{{ 'check-circle' if text_result.split(' ')[0].lower() == 'positive' else 'times-circle' if text_result.split(' ')[0].lower() == 'negative' else 'info-circle' }}"></i>
+                        Analysis Result
+                    </h3>
+                    <p class="result-text">{{ text_result }}</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- File Upload Section -->
+            <div class="section">
+                <h2>📁 CSV Upload Mode</h2>
+                <form method="POST" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <label for="file">Upload CSV file:</label>
+                        <input type="file" id="file" name="file" accept=".csv" required>
+                        <small>CSV file should contain a text column (default: 'text')</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="text_column">Text column name:</label>
+                        <input type="text" id="text_column" name="text_column" value="text" placeholder="text">
+                    </div>
+                    
+                    <button type="submit" class="btn primary">Analyze CSV</button>
+                </form>
+
+                {% if error %}
+                <div class="error-box">
+                    <p>{{ error }}</p>
+                </div>
+                {% endif %}
+
+                {% if download_ready %}
+                <div class="download-section">
+                    <h3>📥 Download Results</h3>
+                    <div class="download-buttons">
+                        <a href="{{ url_for('download_complete') }}" class="btn secondary">
+                            <i class="fas fa-download"></i> Complete Results
+                        </a>
+                        {% if positive_texts %}
+                        <a href="{{ url_for('download_positive') }}" class="btn positive">
+                            <i class="fas fa-smile"></i> Positive Only
+                        </a>
+                        {% endif %}
+                        {% if negative_texts %}
+                        <a href="{{ url_for('download_negative') }}" class="btn negative">
+                            <i class="fas fa-frown"></i> Negative Only
+                        </a>
+                        {% endif %}
+                        {% if neutral_texts %}
+                        <a href="{{ url_for('download_neutral') }}" class="btn neutral">
+                            <i class="fas fa-meh"></i> Neutral Only
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Results Display -->
+            {% if positive_texts or negative_texts or neutral_texts %}
+            <div class="section">
+                <h2>📊 Analysis Results</h2>
+                
+                <div class="results-grid">
+                    <!-- Positive Results -->
+                    <div class="results-column positive">
+                        <div class="column-header">
+                            <h3>😀 Positive Sentences</h3>
+                            {% if positive_texts %}
+                            <a href="{{ url_for('download_positive') }}" class="btn-mini positive">
+                                <i class="fas fa-download"></i> Download
+                            </a>
+                            {% endif %}
+                        </div>
+                        <div class="sentences-list">
+                            {% for text, sentiment in positive_texts %}
+                            <div class="sentence-item">
+                                <p><strong>{{ text }}</strong></p>
+                                <span class="sentiment-tag positive">{{ sentiment }}</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Negative Results -->
+                    <div class="results-column negative">
+                        <div class="column-header">
+                            <h3>😞 Negative Sentences</h3>
+                            {% if negative_texts %}
+                            <a href="{{ url_for('download_negative') }}" class="btn-mini negative">
+                                <i class="fas fa-download"></i> Download
+                            </a>
+                            {% endif %}
+                        </div>
+                        <div class="sentences-list">
+                            {% for text, sentiment in negative_texts %}
+                            <div class="sentence-item">
+                                <p><strong>{{ text }}</strong></p>
+                                <span class="sentiment-tag negative">{{ sentiment }}</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Neutral Results (Optional) -->
+                    {% if neutral_texts %}
+                    <div class="results-column neutral">
+                        <div class="column-header">
+                            <h3>😐 Neutral Sentences</h3>
+                            {% if neutral_texts %}
+                            <a href="{{ url_for('download_neutral') }}" class="btn-mini neutral">
+                                <i class="fas fa-download"></i> Download
+                            </a>
+                            {% endif %}
+                        </div>
+                        <div class="sentences-list">
+                            {% for text, sentiment in neutral_texts %}
+                            <div class="sentence-item">
+                                <p><strong>{{ text }}</strong></p>
+                                <span class="sentiment-tag neutral">{{ sentiment }}</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <footer>
+            <p>Tanglish Sentiment Analysis</p>
+        </footer>
+    </div>
+</body>
+</html>
